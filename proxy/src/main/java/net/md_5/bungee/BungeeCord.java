@@ -58,7 +58,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ConfigurationAdapter;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.config.ServerInfo;
+import net.md_5.bungee.api.connection.EndpointType;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.event.ProxyBindEvent;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.command.CommandBungee;
@@ -340,6 +342,7 @@ public class BungeeCord extends ProxyServer
                     {
                         listeners.add( future.channel() );
                         getLogger().log( Level.INFO, "Listening on {0}", info.getSocketAddress() );
+                        pluginManager.callEvent( new ProxyBindEvent( info.getSocketAddress(), info, EndpointType.SERVER ) );
                     } else
                     {
                         getLogger().log( Level.WARNING, "Could not bind to host " + info.getSocketAddress(), future.cause() );
@@ -368,6 +371,7 @@ public class BungeeCord extends ProxyServer
                         {
                             listeners.add( future.channel() );
                             getLogger().log( Level.INFO, "Started query on {0}", future.channel().localAddress() );
+                            pluginManager.callEvent( new ProxyBindEvent( future.channel().localAddress(), info, EndpointType.QUERY ) );
                         } else
                         {
                             getLogger().log( Level.WARNING, "Could not bind to host " + info.getSocketAddress(), future.cause() );
