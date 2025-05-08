@@ -61,6 +61,7 @@ import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.EndpointType;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ProxyBindEvent;
+import net.md_5.bungee.api.event.ProxyUnbindEvent;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.api.plugin.PluginManager;
 import net.md_5.bungee.command.CommandBungee;
@@ -342,7 +343,7 @@ public class BungeeCord extends ProxyServer
                     {
                         listeners.add( future.channel() );
                         getLogger().log( Level.INFO, "Listening on {0}", info.getSocketAddress() );
-                        pluginManager.callEvent( new ProxyBindEvent( info.getSocketAddress(), info, EndpointType.SERVER ) );
+                        fireBindEvents( future.channel(), info, EndpointType.SERVER );
                     } else
                     {
                         getLogger().log( Level.WARNING, "Could not bind to host " + info.getSocketAddress(), future.cause() );
@@ -371,7 +372,7 @@ public class BungeeCord extends ProxyServer
                         {
                             listeners.add( future.channel() );
                             getLogger().log( Level.INFO, "Started query on {0}", future.channel().localAddress() );
-                            pluginManager.callEvent( new ProxyBindEvent( future.channel().localAddress(), info, EndpointType.QUERY ) );
+                            fireBindEvents( future.channel(), info, EndpointType.QUERY );
                         } else
                         {
                             getLogger().log( Level.WARNING, "Could not bind to host " + info.getSocketAddress(), future.cause() );
@@ -397,6 +398,16 @@ public class BungeeCord extends ProxyServer
             }
         }
         listeners.clear();
+    }
+
+    private void fireBindEvents(Channel channel, ListenerInfo info, EndpointType endpointType)
+    {
+        SocketAddress address = channel.localAddress();
+        pluginManager.callEvent( new ProxyBindEvent( address, info, endpointType ) );
+        channel.closeFuture().addListener( future ->
+        {
+            pluginManager.callEvent( new ProxyUnbindEvent( address, info, endpointType ) );
+        } );
     }
 
     @Override
